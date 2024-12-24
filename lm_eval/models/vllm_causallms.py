@@ -25,7 +25,8 @@ from lm_eval.utils import (
 
 try:
     import ray
-    from vllm import LLM, SamplingParams
+    from ipex_llm.vllm.xpu.engine import IPEXLLMClass as LLM
+    from vllm import SamplingParams
     from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
@@ -62,11 +63,12 @@ class VLLM(TemplateLM):
         max_model_len: int = None,
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
-        device: str = "cuda",
+        device: str = "xpu",
         data_parallel_size: int = 1,
         lora_local_path: str = None,
         **kwargs,
     ):
+        print("vllm get invoked...")
         super().__init__()
 
         if not find_spec("vllm"):
@@ -75,7 +77,6 @@ class VLLM(TemplateLM):
                 "Please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
-        assert "cuda" in device or device is None, "vLLM only supports CUDA"
         assert (
             max_length is None or max_model_len is None
         ), "Either max_length or max_model_len may be provided, but not both"
